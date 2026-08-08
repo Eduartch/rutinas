@@ -1,6 +1,6 @@
 /*
 SQLyog Ultimate v12.09 (64 bit)
-MySQL - 8.0.44 : Database - syscom_bdgrifovia
+MySQL - 8.0.37 : Database - bdgrifovia
 *********************************************************************
 */
 
@@ -146,16 +146,16 @@ DELIMITER $$
 
 /*!50003 DROP TRIGGER*//*!50032 IF EXISTS */ /*!50003 `Akardex` */$$
 
-/*!50003 CREATE */ /*!50003 TRIGGER `Akardex` AFTER UPDATE ON `fe_kar` FOR EACH ROW begin
-if new.acti='I' then
-    call astock(old.idart,old.alma,old.cant,if(old.tipo="C","V","C"));
-    IF old.kar_idco>0 then
-       update venta set estado=0 where idjournal=old.kar_idco;
-    end if;
-    insert into fe_akardex(logk_deta,logk_idar,logk_cant,logk_prec,
-    logk_ida1,logk_idk1,logk_fech,logk_idco)values('Se Anulo ',old.idart,old.cant,old.prec,old.idauto,
-    old.idkar,localtime,old.kar_idco);
-end if;
+/*!50003 CREATE */ /*!50003 TRIGGER `Akardex` AFTER UPDATE ON `fe_kar` FOR EACH ROW begin
+if new.acti='I' then
+    call astock(old.idart,old.alma,old.cant,if(old.tipo="C","V","C"));
+    IF old.kar_idco>0 then
+       update venta set estado=1 where idjournal=old.kar_idco;
+    end if;
+    insert into fe_akardex(logk_deta,logk_idar,logk_cant,logk_prec,
+    logk_ida1,logk_idk1,logk_fech,logk_idco)values('Se Anulo ',old.idart,old.cant,old.prec,old.idauto,
+    old.idkar,localtime,old.kar_idco);
+end if;
 end */$$
 
 
@@ -628,7 +628,7 @@ DELIMITER ;
 /*!50003 DROP FUNCTION IF EXISTS `FunCreaProveedor` */;
 DELIMITER $$
 
-/*!50003 CREATE FUNCTION `FunCreaProveedor`(cruc varchar(11),crazo varchar(100),cdire varchar(100),cciud varchar(100),
+/*!50003 CREATE FUNCTION `FunCreaProveedor`(cruc varchar(11),crazo varchar(150),cdire varchar(100),cciud varchar(100),
 cfono varchar(10),cfax varchar(10),crpm varchar(10),correo varchar(45),crefe varchar(200),ccelu varchar(10),
 nidus integer,cpc varchar(45)) RETURNS int
 BEGIN
@@ -5706,7 +5706,7 @@ DELIMITER $$
 /*!50003 CREATE PROCEDURE `PROINGRESALECTURAFINAL`(nidL integer,nfinalc decimal(15,2),
 nfinalm decimal(15,2),nidus integer,nor integer)
 BEGIN
-update fe_lecturas set lect_mfinal=0,lect_cfinal=nfinalc,lect_fope1=localtime,lect_iduf=nidus,lect_esta='C'
+update fe_lecturas set lect_mfinal=nfinalm,lect_cfinal=nfinalc,lect_fope1=localtime,lect_iduf=nidus,lect_esta='C'
 where lect_idle=nidl;
 END */$$
 DELIMITER ;
@@ -5980,7 +5980,7 @@ UNION
 fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,1 as codigo  FROM venta WHERE pump=5 AND idgrade=1 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
 UNION
 (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,1 as codigo FROM venta WHERE pump=6 AND idgrade=1  AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,1 as codigo FROM venta WHERE pump=6 AND idgrade=1  AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
 union
 (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
 fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,4 as codigo FROM venta WHERE pump=5 AND idgrade=4 AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
@@ -5992,7 +5992,7 @@ UNION
 fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,5 as codigo  FROM venta WHERE pump=5 AND idgrade=5 AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
 UNION
 (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,5 as codigo FROM venta WHERE pump=6 AND idgrade=5  AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
+fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,5 as codigo FROM venta WHERE pump=6 AND idgrade=5  AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
 UNION
 (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
 fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,1 as codigo  FROM venta WHERE pump=7 AND idgrade=1 AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
@@ -6028,7 +6028,7 @@ case
 	fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,1 AS codigo  FROM venta WHERE pump=5 AND idgrade=1 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
 	UNION
 	(SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-	fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,1 AS codigo FROM venta WHERE pump=6 AND idgrade=1  AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+	fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,1 AS codigo FROM venta WHERE pump=6 AND idgrade=1  AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
 	UNION
 	(SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
 	fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,4 AS codigo FROM venta WHERE pump=5 AND idgrade=4  AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
@@ -6040,7 +6040,7 @@ case
 	fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,5 AS codigo  FROM venta WHERE pump=5 AND idgrade=5 AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
 	UNION
 	(SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-	fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,5 AS codigo FROM venta WHERE pump=6 AND idgrade=5  AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1);
+	fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,5 AS codigo FROM venta WHERE pump=6 AND idgrade=5  AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1);
   when nisla=4 then
 	(SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
 	fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,1 AS codigo  FROM venta WHERE pump=7 AND idgrade=1 AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
@@ -6835,13 +6835,13 @@ BEGIN
 declare cbuscar varchar(80);
 set cbuscar=concat('%',trim(cbusca),+'%');
 if opt=0 then
-   select nomb,tipo,activo,idusua,0 as Uno,1 as uno,2 as dos,3 as tres,clave,idalma from fe_usua where nomb like cbuscar;
+   select nomb,tipo,activo,idusua,0 as Uno,1 as uno,2 as dos,3 as tres,clave,idalma from fe_usua where nomb like cbuscar order by nomb;
 end if;
 if opt=1 then
-   select nomb,tipo,activo,idusua,0 as Uno,1 as uno,2 as dos,3 as tres,clave,idalma from fe_usua where idusua=nid;
+   select nomb,tipo,activo,idusua,0 as Uno,1 as uno,2 as dos,3 as tres,clave,idalma from fe_usua where idusua=nid ORDER BY nomb;
 end if;
 if opt=2 then
-   select nomb,tipo,activo,idusua,0 as Uno,1 as uno,2 as dos,3 as tres,clave,idalma from fe_usua where nomb like cbuscar and left(tipo,1)='V';
+   select nomb,tipo,activo,idusua,0 as Uno,1 as uno,2 as dos,3 as tres,clave,idalma from fe_usua where nomb like cbuscar and left(tipo,1)='V' ORDER BY nomb;
 end if;
 END */$$
 DELIMITER ;

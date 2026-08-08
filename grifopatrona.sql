@@ -1,6 +1,6 @@
 /*
 SQLyog Ultimate v12.09 (64 bit)
-MySQL - 8.0.45 : Database - eduar_bdgbrisas
+MySQL - 8.0.45 : Database - eduar_bdgrifopatr
 *********************************************************************
 */
 
@@ -149,9 +149,9 @@ DELIMITER $$
 /*!50003 CREATE */ /*!50003 TRIGGER `Akardex` AFTER UPDATE ON `fe_kar` FOR EACH ROW begin
 if new.acti='I' then
     call astock(old.idart,old.alma,old.cant,if(old.tipo="C","V","C"));
-      IF old.kar_idco>0 THEN
+    IF old.kar_idco>0 THEN
        UPDATE venta SET estado=1 WHERE idjournal=old.kar_idco;
-      END IF;
+    END IF;
     insert into fe_akardex(logk_deta,logk_idar,logk_cant,logk_prec,
     logk_ida1,logk_idk1,logk_fech,logk_idco)values('Se Anulo ',old.idart,old.cant,old.prec,old.idauto,
     old.idkar,localtime,old.kar_idco);
@@ -234,6 +234,7 @@ DELIMITER $$
 
 /*!50003 CREATE */ /*!50003 TRIGGER `AnulaMvtos` AFTER UPDATE ON `fe_rcom` FOR EACH ROW begin
 if new.acti='I' then
+   update fe_caja set acti='I' where idauto=old.idauto;
    update fe_kar set acti='I' where idauto=old.idauto;
    update fe_costos set cost_acti='I' where cost_idau=old.idauto;
    update fe_lcaja set lcaj_acti='I' where lcaj_idau=old.idauto;
@@ -444,29 +445,6 @@ return nid;
 END */$$
 DELIMITER ;
 
-/* Function  structure for function  `FunCreaCliPro` */
-
-/*!50003 DROP FUNCTION IF EXISTS `FunCreaCliPro` */;
-DELIMITER $$
-
-/*!50003 CREATE FUNCTION `FunCreaCliPro`(cruc varchar(11),crazo varchar(60),cdire varchar(60),cciud varchar(60),
-cfono varchar(10),cfax varchar(10),opt integer,cdni varchar(10)) RETURNS int
-BEGIN
-declare nid integer;
-set nid=0;
-if opt=0 then
-   INSERT INTO fe_prov(nruc,razo,dire,ciud,fono,fax)
-   VALUES (cruc,crazo,cdire,cciud,cfono,cfax);
-   select last_insert_id() into nid from fe_prov group by last_insert_id();
- else
-   INSERT INTO fe_clie(nruc,razo,dire,ciud,fono,fax,ndni)
-   VALUES (cruc,crazo,cdire,cciud,cfono,cfax,cdni);
-   select last_insert_id() into nid from fe_clie group by last_insert_id();
-end if;
-return nid;
-END */$$
-DELIMITER ;
-
 /* Function  structure for function  `FuncreaConceptosCaja` */
 
 /*!50003 DROP FUNCTION IF EXISTS `FuncreaConceptosCaja` */;
@@ -643,23 +621,6 @@ return nid;
 END */$$
 DELIMITER ;
 
-/* Function  structure for function  `FunCreaProveedor` */
-
-/*!50003 DROP FUNCTION IF EXISTS `FunCreaProveedor` */;
-DELIMITER $$
-
-/*!50003 CREATE FUNCTION `FunCreaProveedor`(cruc varchar(11),crazo varchar(100),cdire varchar(100),cciud varchar(100),
-cfono varchar(10),cfax varchar(10),crpm varchar(10),correo varchar(45),crefe varchar(200),ccelu varchar(10),
-nidus integer,cpc varchar(45)) RETURNS int
-BEGIN
-declare nid integer default 0;
-INSERT INTO fe_prov(nruc,razo,dire,ciud,fono,fax,prov_rpm,email,refe,celu,prov_idus,idpcprov,fechprov)
-VALUES (cruc,crazo,cdire,cciud,cfono,cfax,crpm,correo,crefe,ccelu,nidus,cpc,localtime);
-select last_insert_id() into nid from fe_prov group by last_insert_id();
-return nid;
-END */$$
-DELIMITER ;
-
 /* Function  structure for function  `FunCreaSeriesDctos` */
 
 /*!50003 DROP FUNCTION IF EXISTS `FunCreaSeriesDctos` */;
@@ -672,23 +633,6 @@ insert into fe_serie(tdoc,serie,nume,codt,items,seri_idal)
 values(ctdoc,cserie,cnume,ntda,nitems,ntda);
 select last_insert_id() into ids from fe_serie group by last_insert_id();
 return ids;
-END */$$
-DELIMITER ;
-
-/* Function  structure for function  `FunCreaTransportista` */
-
-/*!50003 DROP FUNCTION IF EXISTS `FunCreaTransportista` */;
-DELIMITER $$
-
-/*!50003 CREATE FUNCTION `FunCreaTransportista`(cplaca VARCHAR(10),crazo VARCHAR(100),
-cdir VARCHAR(100),nruc VARCHAR(11),chofe VARCHAR(100),cbreve VARCHAR(15),
-cmarca VARCHAR(20),ccons VARCHAR(30),nidus INTEGER,cplaca1 VARCHAR(10),ctipot VARCHAR(2),const1 VARCHAR(30)) RETURNS int
-BEGIN
-DECLARE nid INTEGER DEFAULT 0;
-INSERT  INTO fe_tra(placa,razon,dirtr,ructr,nombr,breve,marca,cons,tran_idus,placa1,tran_tipo,tran_cons1)
-VALUES(cplaca,crazo,cdir,nruc,chofe,cbreve,cmarca,ccons,nidus,cplaca1,ctipot,const1);
-SELECT LAST_INSERT_ID() INTO nid FROM fe_tra GROUP BY LAST_INSERT_ID();
-RETURN nid;
 END */$$
 DELIMITER ;
 
@@ -913,7 +857,7 @@ if opt=0 then
       call IngresaCuentas(nv,0,0,0,nigv,0,0,nt,n1,0,0,0,n2,0,0,n3,"D","","","","D","","","H",nid);
       end if;
   else
-   INSERT INTO fe_correvtas(auto_corr)VALUES(CONCAT(ctdoc,cndoc));   
+    insert into fe_correvtas(auto_corr)values(concat(ctdoc,cndoc));      
    INSERT INTO fe_rcom(tdoc,form,ndoc,fech,fecr,deta,valor,igv,impo,ndo2,mone,
    dolar,vigv,tcom,idcliente,tipom,fusua,idusua,codt,rcom_tipo,pimpo,rcom_idis)
    VALUES (ctdoc,cform,cndoc,dfecha,dfecha,cdetalle,nv,nigv,nt,cndo2,cm,ndolar,ni,
@@ -1287,25 +1231,6 @@ return id;
 end */$$
 DELIMITER ;
 
-/* Function  structure for function  `FunIngresaDatosLcajaEfectivoCturnos20Transferencia` */
-
-/*!50003 DROP FUNCTION IF EXISTS `FunIngresaDatosLcajaEfectivoCturnos20Transferencia` */;
-DELIMITER $$
-
-/*!50003 CREATE FUNCTION `FunIngresaDatosLcajaEfectivoCturnos20Transferencia`(dfecha DATE,cndoc VARCHAR(12),
-cdeta VARCHAR(100),idcta INTEGER,sdeudor DECIMAL(12,2),
-sacreedor DECIMAL(12,2),cmone CHAR,ndolar DECIMAL(5,3),nidus INTEGER,nidcp INTEGER,nidauto INTEGER,
-cform CHAR,cdcto VARCHAR(12),ctdoc VARCHAR(2),ncodt INTEGER,nturno INTEGER,ndscto DECIMAL(12,2),nidtran INTEGER) RETURNS int
-BEGIN
-DECLARE nid INTEGER DEFAULT 0;
-INSERT INTO fe_lcaja(lcaj_fech,lcaj_ndoc,lcaj_deta,lcaj_idct,lcaj_deud,lcaj_acre,lcaj_mone,lcaj_dola,
-lcaj_idus,lcaj_clpr,lcaj_idau,lcaj_form,lcaj_dcto,lcaj_tdoc,lcaj_codt,lcaj_idtu,lcaj_dsct,lcaj_idtra,lcaj_fope)VALUES
-(dfecha,cndoc,cdeta,idcta,sdeudor,sacreedor,cmone,ndolar,nidus,nidcp,nidauto,cform,cdcto,ctdoc,ncodt,nturno,ndscto,nidtran,localtime);
-SELECT LAST_INSERT_ID() INTO nid FROM fe_lcaja GROUP BY LAST_INSERT_ID();
-RETURN nid;
-END */$$
-DELIMITER ;
-
 /* Function  structure for function  `FunIngresaDatosLibroDiario` */
 
 /*!50003 DROP FUNCTION IF EXISTS `FunIngresaDatosLibroDiario` */;
@@ -1414,49 +1339,25 @@ DELIMITER ;
 DELIMITER $$
 
 /*!50003 CREATE FUNCTION `FuningresaDocumentoElectronico`(
-ctdoc VARCHAR(2),cform CHAR,cndoc VARCHAR(12),dfecha DATE,cdetalle VARCHAR(220),
-nv DECIMAL(12,2),nigv DECIMAL(12,2),nt DECIMAL(12,2),cndo2 VARCHAR(10),cm CHAR,
-ndolar DECIMAL(6,4),ni DECIMAL(6,4),ctg CHAR,ccodp INTEGER,nidturno INTEGER,nus INTEGER,nidcodt INTEGER,
-n1 INTEGER,n2 INTEGER,n3 INTEGER,ngratuita DECIMAL(8,2),nidlectura INTEGER,nexon DECIMAL(12,2),ndscto DECIMAL(12,2)) RETURNS int
+ctdoc varchar(2),cform char,cndoc varchar(12),dfecha date,cdetalle varchar(220),
+nv decimal(12,2),nigv decimal(12,2),nt decimal(12,2),cndo2 varchar(10),cm char,
+ndolar decimal(6,4),ni decimal(6,4),ctg char,ccodp integer,cmvto char,nus integer,nidcodt integer,
+n1 integer,n2 integer,n3 integer,nitem integer,idtr decimal(10,2),nexon decimal(12,2),ndscto decimal(12,2)) RETURNS int
 BEGIN
-DECLARE nid INTEGER;
-SET nid=0;
-INSERT INTO fe_correvtas(auto_corr)VALUES(CONCAT(ctdoc,cndoc));      
-INSERT INTO fe_rcom(tdoc,form,ndoc,fech,fecr,deta,valor,igv,impo,ndo2,mone,dolar,vigv,tcom,idcliente,
-tipom,fusua,idusua,codt,rcom_exon,rcom_dsct,rcom_idtr,rcom_idis)
-VALUES (ctdoc,cform,cndoc,dfecha,dfecha,cdetalle,nv,nigv,nt,cndo2,cm,ndolar,ni,ctg,ccodp,'V',LOCALTIME,nus,nidcodt,
-nexon,ndscto,nidturno,nidlectura);
-SELECT LAST_INSERT_ID() INTO nid FROM fe_rcom GROUP BY LAST_INSERT_ID();
-IF n1>0 AND n2>0 AND n3>0 THEN
-   CALL IngresaCuentasV(nv,nigv,nt,n1,n2,n3,"H","H","D",nid);
-END IF;
-RETURN nid;
-END */$$
-DELIMITER ;
-
-/* Function  structure for function  `FuningresaDocumentoElectronicoy` */
-
-/*!50003 DROP FUNCTION IF EXISTS `FuningresaDocumentoElectronicoy` */;
-DELIMITER $$
-
-/*!50003 CREATE FUNCTION `FuningresaDocumentoElectronicoy`(
-ctdoc VARCHAR(2),cform CHAR,cndoc VARCHAR(12),dfecha DATE,cdetalle VARCHAR(220),
-nv DECIMAL(12,2),nigv DECIMAL(12,2),nt DECIMAL(12,2),cndo2 VARCHAR(10),cm CHAR,
-ndolar DECIMAL(6,4),ni DECIMAL(6,4),ctg CHAR,ccodp INTEGER,nidturno INTEGER,nus INTEGER,nidcodt INTEGER,
-n1 INTEGER,n2 INTEGER,n3 INTEGER,ngratuita DECIMAL(8,2),nidlectura INTEGER,nexon DECIMAL(12,2),ndscto DECIMAL(12,2),dfope datetime) RETURNS int
-BEGIN
-DECLARE nid INTEGER;
-SET nid=0;
-INSERT INTO fe_correvtas(auto_corr)VALUES(CONCAT(ctdoc,cndoc));      
-INSERT INTO fe_rcom(tdoc,form,ndoc,fech,fecr,deta,valor,igv,impo,ndo2,mone,dolar,vigv,tcom,idcliente,
-tipom,fusua,idusua,codt,rcom_exon,rcom_dsct,rcom_idtr,rcom_idis)
-VALUES (ctdoc,cform,cndoc,dfecha,dfecha,cdetalle,nv,nigv,nt,cndo2,cm,ndolar,ni,ctg,ccodp,'V',dfope,nus,nidcodt,
-nexon,ndscto,nidturno,nidlectura);
-SELECT LAST_INSERT_ID() INTO nid FROM fe_rcom GROUP BY LAST_INSERT_ID();
-IF n1>0 AND n2>0 AND n3>0 THEN
-   CALL IngresaCuentasV(nv,nigv,nt,n1,n2,n3,"H","H","D",nid);
-END IF;
-RETURN nid;
+declare nid integer;
+set nid=0;
+ insert into fe_correvtas(auto_corr)values(concat(ctdoc,cndoc));      
+   INSERT INTO fe_rcom(tdoc,form,ndoc,fech,fecr,deta,valor,igv,impo,ndo2,mone,dolar,vigv,tcom,idcliente,
+   tipom,fusua,idusua,codt,pimpo,rcom_exon,rcom_dsct)
+   VALUES (ctdoc,cform,cndoc,dfecha,dfecha,cdetalle,nv,nigv,nt,cndo2,cm,ndolar,ni,ctg,ccodp,'V',localtime,nus,nidcodt,
+   idtr,nexon,ndscto);
+   select last_insert_id() into nid from fe_rcom group by last_insert_id();
+ if n1>0 and n2>0 and n3>0 then
+    if n1>0 and n2>0 and n3>0 then
+      call IngresaCuentasV(nv,nigv,nt,n1,n2,n3,"H","H","D",nid);
+   end if;
+end if;
+return nid;
 END */$$
 DELIMITER ;
 
@@ -2760,6 +2661,96 @@ declare vdvto integer default 0;
 DECLARE CONTINUE HANDLER FOR NOT FOUND SET vdvto=0;
 select count(*)  into vdvto from fe_traspaso where tras_idau1=nid and tras_acti<>'I' group by tras_idau;
 return vdvto;
+END */$$
+DELIMITER ;
+
+/* Function  structure for function  `FunCreaTransportista` */
+
+/*!50003 DROP FUNCTION IF EXISTS `FunCreaTransportista` */;
+DELIMITER $$
+
+/*!50003 CREATE FUNCTION `FunCreaTransportista`(cplaca VARCHAR(10),crazo VARCHAR(100),
+cdir VARCHAR(100),nruc VARCHAR(11),chofe VARCHAR(100),cbreve VARCHAR(15),
+cmarca VARCHAR(20),ccons VARCHAR(30),nidus INTEGER,cplaca1 VARCHAR(10),ctipot VARCHAR(2),const1 VARCHAR(30)) RETURNS int
+BEGIN
+DECLARE nid INTEGER DEFAULT 0;
+INSERT  INTO fe_tra(placa,razon,dirtr,ructr,nombr,breve,marca,cons,tran_idus,placa1,tran_tipo,tran_cons1)
+VALUES(cplaca,crazo,cdir,nruc,chofe,cbreve,cmarca,ccons,nidus,cplaca1,ctipot,const1);
+SELECT LAST_INSERT_ID() INTO nid FROM fe_tra GROUP BY LAST_INSERT_ID();
+RETURN nid;
+END */$$
+DELIMITER ;
+
+/* Function  structure for function  `FunCreaProveedor` */
+
+/*!50003 DROP FUNCTION IF EXISTS `FunCreaProveedor` */;
+DELIMITER $$
+
+/*!50003 CREATE FUNCTION `FunCreaProveedor`(cruc varchar(11),crazo varchar(100),cdire varchar(200),cciud varchar(100),
+cfono varchar(10),cfax varchar(10),crpm varchar(10),correo varchar(45),crefe varchar(200),ccelu varchar(10),
+nidus integer,cpc varchar(45)) RETURNS int
+BEGIN
+declare nid integer default 0;
+INSERT INTO fe_prov(nruc,razo,dire,ciud,fono,fax,prov_rpm,email,refe,celu,prov_idus,idpcprov,fechprov)
+VALUES (cruc,crazo,cdire,cciud,cfono,cfax,crpm,correo,crefe,ccelu,nidus,cpc,localtime);
+select last_insert_id() into nid from fe_prov group by last_insert_id();
+return nid;
+END */$$
+DELIMITER ;
+
+/* Function  structure for function  `FuningresaDocumentoElectronicoy` */
+
+/*!50003 DROP FUNCTION IF EXISTS `FuningresaDocumentoElectronicoy` */;
+DELIMITER $$
+
+/*!50003 CREATE FUNCTION `FuningresaDocumentoElectronicoy`(ctdoc VARCHAR(2),cform CHAR,cndoc VARCHAR(12),dfecha DATE,cdetalle VARCHAR(220),
+nv DECIMAL(12,2),nigv DECIMAL(12,2),nt DECIMAL(12,2),cndo2 VARCHAR(10),cm CHAR,
+ndolar DECIMAL(6,4),ni DECIMAL(6,4),ctg CHAR,ccodp INTEGER,nidturno INTEGER,nus INTEGER,nidcodt INTEGER,
+n1 INTEGER,n2 INTEGER,n3 INTEGER,ngratuita DECIMAL(8,2),nidlectura INTEGER,nexon DECIMAL(12,2),ndscto DECIMAL(12,2),dfope DATETIME) RETURNS int
+BEGIN
+DECLARE nid INTEGER;
+SET nid=0;
+INSERT INTO fe_correvtas(auto_corr)VALUES(CONCAT(ctdoc,cndoc));      
+INSERT INTO fe_rcom(tdoc,form,ndoc,fech,fecr,deta,valor,igv,impo,ndo2,mone,dolar,vigv,tcom,idcliente,
+tipom,fusua,idusua,codt,rcom_exon,rcom_dsct,rcom_idtr,rcom_idis)
+VALUES (ctdoc,cform,cndoc,dfecha,dfecha,cdetalle,nv,nigv,nt,cndo2,cm,ndolar,ni,ctg,ccodp,'V',dfope,nus,nidcodt,
+nexon,ndscto,nidturno,nidlectura);
+SELECT LAST_INSERT_ID() INTO nid FROM fe_rcom GROUP BY LAST_INSERT_ID();
+IF n1>0 AND n2>0 AND n3>0 THEN
+   CALL IngresaCuentasV(nv,nigv,nt,n1,n2,n3,"H","H","D",nid);
+END IF;
+RETURN nid;
+END */$$
+DELIMITER ;
+
+/* Function  structure for function  `FunIngresaDatosLcajaEfectivoCturnos20Transferencia` */
+
+/*!50003 DROP FUNCTION IF EXISTS `FunIngresaDatosLcajaEfectivoCturnos20Transferencia` */;
+DELIMITER $$
+
+/*!50003 CREATE FUNCTION `FunIngresaDatosLcajaEfectivoCturnos20Transferencia`(dfecha DATE,cndoc VARCHAR(12),
+cdeta VARCHAR(100),idcta INTEGER,sdeudor DECIMAL(12,2),
+sacreedor DECIMAL(12,2),cmone CHAR,ndolar DECIMAL(5,3),nidus INTEGER,nidcp INTEGER,nidauto INTEGER,
+cform CHAR,cdcto VARCHAR(12),ctdoc VARCHAR(2),ncodt INTEGER,nturno INTEGER,ndscto DECIMAL(12,2),nidtran INTEGER) RETURNS int
+BEGIN
+DECLARE nid INTEGER DEFAULT 0;
+INSERT INTO fe_lcaja(lcaj_fech,lcaj_ndoc,lcaj_deta,lcaj_idct,lcaj_deud,lcaj_acre,lcaj_mone,lcaj_dola,
+lcaj_idus,lcaj_clpr,lcaj_idau,lcaj_form,lcaj_dcto,lcaj_tdoc,lcaj_codt,lcaj_idtu,lcaj_dsct,lcaj_idle,lcaj_fope)VALUES
+(dfecha,cndoc,cdeta,idcta,sdeudor,sacreedor,cmone,ndolar,nidus,nidcp,nidauto,cform,cdcto,ctdoc,ncodt,nturno,ndscto,nidtran,localtime);
+SELECT LAST_INSERT_ID() INTO nid FROM fe_lcaja GROUP BY LAST_INSERT_ID();
+RETURN nid;
+END */$$
+DELIMITER ;
+
+/* Procedure structure for procedure `AbrirCaja` */
+
+/*!50003 DROP PROCEDURE IF EXISTS  `AbrirCaja` */;
+
+DELIMITER $$
+
+/*!50003 CREATE PROCEDURE `AbrirCaja`(in dfecha date)
+BEGIN
+update fe_caja set estado=' ' where fech=dfecha;
 END */$$
 DELIMITER ;
 
@@ -5199,6 +5190,23 @@ update fe_sucu set nomb=cnomb,dire=cdire,ciud=cciud,sucuidserie=nser,sucu_idus=n
 end */$$
 DELIMITER ;
 
+/* Procedure structure for procedure `Proeditaclipro` */
+
+/*!50003 DROP PROCEDURE IF EXISTS  `Proeditaclipro` */;
+
+DELIMITER $$
+
+/*!50003 CREATE PROCEDURE `Proeditaclipro`(in crazo varchar(60),in cdire varchar(60),in cciud varchar(60),
+in cfono varchar(10),in cfax varchar(10),in nid integer,in opt integer,in cdni varchar(8))
+BEGIN
+if opt=0 then
+   UPDATE fe_prov SET dire=cdire,ciud=cciud,fono=cfono,fax=cfax WHERE idprov=nid;
+  else
+   UPDATE fe_clie SET dire=cdire,ciud=cciud,fono=cfono,fax=cfax,ndni=cdni WHERE idclie=nid;
+end if;
+END */$$
+DELIMITER ;
+
 /* Procedure structure for procedure `Proeditaconceptoscaja` */
 
 /*!50003 DROP PROCEDURE IF EXISTS  `Proeditaconceptoscaja` */;
@@ -5450,97 +5458,6 @@ lcaj_idus,lcaj_clpr,lcaj_idau,lcaj_form,lcaj_dcto,lcaj_tdoc,lcaj_codt,lcaj_idtu)
 end */$$
 DELIMITER ;
 
-/* Procedure structure for procedure `ProIngresaDatosLcajaEfectivoCturnos10` */
-
-/*!50003 DROP PROCEDURE IF EXISTS  `ProIngresaDatosLcajaEfectivoCturnos10` */;
-
-DELIMITER $$
-
-/*!50003 CREATE PROCEDURE `ProIngresaDatosLcajaEfectivoCturnos10`(dfecha DATE,cndoc VARCHAR(12),
-cdeta VARCHAR(100),idcta INTEGER,sdeudor DECIMAL(12,2),
-sacreedor DECIMAL(12,2),cmone CHAR,ndolar DECIMAL(5,3),nidus INTEGER,nidcp INTEGER,nidauto INTEGER,
-cform CHAR,cdcto VARCHAR(12),ctdoc VARCHAR(2),ncodt INTEGER,nturno INTEGER,nidlectura INTEGER)
-BEGIN
-INSERT INTO fe_lcaja(lcaj_fech,lcaj_ndoc,lcaj_deta,lcaj_idct,lcaj_deud,lcaj_acre,lcaj_mone,lcaj_dola,
-lcaj_idus,lcaj_clpr,lcaj_idau,lcaj_form,lcaj_dcto,lcaj_tdoc,lcaj_codt,lcaj_idtu,lcaj_idle,lcaj_fope)VALUES
-(dfecha,cndoc,cdeta,idcta,sdeudor,sacreedor,cmone,ndolar,nidus,nidcp,nidauto,cform,cdcto,ctdoc,ncodt,nturno,nidlectura,localtime);
-END */$$
-DELIMITER ;
-
-/* Procedure structure for procedure `ProIngresaDatosLcajaEfectivoCturnos20` */
-
-/*!50003 DROP PROCEDURE IF EXISTS  `ProIngresaDatosLcajaEfectivoCturnos20` */;
-
-DELIMITER $$
-
-/*!50003 CREATE PROCEDURE `ProIngresaDatosLcajaEfectivoCturnos20`(dfecha DATE,cndoc VARCHAR(12),
-cdeta VARCHAR(100),idcta INTEGER,sdeudor DECIMAL(12,2),
-sacreedor DECIMAL(12,2),cmone CHAR,ndolar DECIMAL(5,3),nidus INTEGER,nidcp INTEGER,nidauto INTEGER,
-cform CHAR,cdcto VARCHAR(12),ctdoc VARCHAR(2),ncodt INTEGER,nturno INTEGER,ndscto DECIMAL(12,2),creft varchar(50),tipot char,ctarjetabco varchar(50))
-BEGIN
-INSERT INTO fe_lcaja(lcaj_fech,lcaj_ndoc,lcaj_deta,lcaj_idct,lcaj_deud,lcaj_acre,lcaj_mone,lcaj_dola,
-lcaj_idus,lcaj_clpr,lcaj_idau,lcaj_form,lcaj_dcto,lcaj_tdoc,lcaj_codt,lcaj_idtu,lcaj_dsct,lcaj_ttar,lcaj_rtar,lcaj_btar,lcaj_fope)VALUES
-(dfecha,cndoc,cdeta,idcta,sdeudor,sacreedor,cmone,ndolar,nidus,nidcp,nidauto,cform,cdcto,ctdoc,ncodt,nturno,ndscto,tipot,creft,ctarjetabco,localtime);
-END */$$
-DELIMITER ;
-
-/* Procedure structure for procedure `ProIngresaDatosLcajaEfectivoCturnos30` */
-
-/*!50003 DROP PROCEDURE IF EXISTS  `ProIngresaDatosLcajaEfectivoCturnos30` */;
-
-DELIMITER $$
-
-/*!50003 CREATE PROCEDURE `ProIngresaDatosLcajaEfectivoCturnos30`(dfecha DATE,cndoc VARCHAR(12),
-cdeta VARCHAR(100),idcta INTEGER,sdeudor DECIMAL(12,2),
-sacreedor DECIMAL(12,2),cmone CHAR,ndolar DECIMAL(5,3),nidus INTEGER,nidcp INTEGER,nidauto INTEGER,
-cform CHAR,cdcto VARCHAR(12),ctdoc VARCHAR(2),ncodt INTEGER,nturno INTEGER,ndscto DECIMAL(12,2),creft VARCHAR(50),tipot CHAR,
-ctarjetabco VARCHAR(50),nidlectura INTEGER)
-BEGIN
-INSERT INTO fe_lcaja(lcaj_fech,lcaj_ndoc,lcaj_deta,lcaj_idct,lcaj_deud,lcaj_acre,lcaj_mone,lcaj_dola,
-lcaj_idus,lcaj_clpr,lcaj_idau,lcaj_form,lcaj_dcto,lcaj_tdoc,lcaj_codt,lcaj_idtu,lcaj_dsct,lcaj_ttar,lcaj_rtar,lcaj_btar,lcaj_fope,lcaj_idle)VALUES
-(dfecha,cndoc,cdeta,idcta,sdeudor,sacreedor,cmone,ndolar,nidus,nidcp,nidauto,cform,cdcto,ctdoc,ncodt,nturno,ndscto,tipot,creft,
-ctarjetabco,LOCALTIME,nidlectura);
-END */$$
-DELIMITER ;
-
-/* Procedure structure for procedure `ProIngresaDatosLcajaEfectivoCturnostarjetas` */
-
-/*!50003 DROP PROCEDURE IF EXISTS  `ProIngresaDatosLcajaEfectivoCturnostarjetas` */;
-
-DELIMITER $$
-
-/*!50003 CREATE PROCEDURE `ProIngresaDatosLcajaEfectivoCturnostarjetas`(dfecha date,cndoc varchar(12),
-cdeta varchar(100),idcta integer,sdeudor decimal(12,2),
-sacreedor decimal(12,2),cmone char,ndolar decimal(5,3),nidus integer,nidcp integer,nidauto integer,
-cform char,cdcto varchar(12),ctdoc varchar(2),ncodt integer,nturno integer,
-creft varchar(50),tipot char,ctarjetabco varchar(50))
-begin
-declare dft date;
-declare nhora integer;
-insert into fe_lcaja(lcaj_fech,lcaj_ndoc,lcaj_deta,lcaj_idct,lcaj_deud,lcaj_acre,lcaj_mone,lcaj_dola,
-lcaj_idus,lcaj_clpr,lcaj_idau,lcaj_form,lcaj_dcto,lcaj_tdoc,lcaj_codt,lcaj_idtu,lcaj_fope,lcaj_ttar,lcaj_rtar,lcaj_btar)values
-(dfecha,cndoc,cdeta,idcta,sdeudor,sacreedor,cmone,ndolar,nidus,nidcp,nidauto,cform,cdcto,ctdoc,ncodt,nturno,localtime,tipot,creft,ctarjetabco);
-end */$$
-DELIMITER ;
-
-/* Procedure structure for procedure `ProIngresaDatosLcajaEfectivoCturnostarjetas10` */
-
-/*!50003 DROP PROCEDURE IF EXISTS  `ProIngresaDatosLcajaEfectivoCturnostarjetas10` */;
-
-DELIMITER $$
-
-/*!50003 CREATE PROCEDURE `ProIngresaDatosLcajaEfectivoCturnostarjetas10`(dfecha DATE,cndoc VARCHAR(12),
-cdeta VARCHAR(100),idcta INTEGER,sdeudor DECIMAL(12,2),sacreedor DECIMAL(12,2),cmone CHAR,ndolar DECIMAL(5,3),nidus INTEGER,nidcp INTEGER,nidauto INTEGER,
-cform CHAR,cdcto VARCHAR(12),ctdoc VARCHAR(2),ncodt INTEGER,nturno INTEGER,
-creft VARCHAR(50),tipot CHAR,ctarjetabco VARCHAR(50),nidlectura INTEGER)
-BEGIN
-INSERT INTO fe_lcaja(lcaj_fech,lcaj_ndoc,lcaj_deta,lcaj_idct,lcaj_deud,lcaj_acre,lcaj_mone,lcaj_dola,
-lcaj_idus,lcaj_clpr,lcaj_idau,lcaj_form,lcaj_dcto,lcaj_tdoc,lcaj_codt,lcaj_idtu,lcaj_fope,lcaj_ttar,lcaj_rtar,lcaj_btar,lcaj_idle)VALUES
-(dfecha,cndoc,cdeta,idcta,sdeudor,sacreedor,cmone,ndolar,nidus,nidcp,nidauto,cform,cdcto,ctdoc,ncodt,nturno,LOCALTIME,
-tipot,creft,ctarjetabco,nidlectura);
-END */$$
-DELIMITER ;
-
 /* Procedure structure for procedure `ProIngresaDetalleGuiaRCompras` */
 
 /*!50003 DROP PROCEDURE IF EXISTS  `ProIngresaDetalleGuiaRCompras` */;
@@ -5634,34 +5551,6 @@ DELIMITER $$
 begin
 insert into fe_rgcompra(rgco_codp,rgco_fech,rgco_idus,rgco_idau,rgco_ndoc,rgco_fope)values(idp,dfecha,nidus,nid,cndoc,localtime());
 end */$$
-DELIMITER ;
-
-/* Procedure structure for procedure `PROINGRESALECTURA` */
-
-/*!50003 DROP PROCEDURE IF EXISTS  `PROINGRESALECTURA` */;
-
-DELIMITER $$
-
-/*!50003 CREATE PROCEDURE `PROINGRESALECTURA`(nidcon INTEGER,nidtur INTEGER,ninic DECIMAL(12,2),
-ninim DECIMAL(12,2),dfecha DATE,nidus INTEGER,nidart INTEGER,nmanguera INTEGER,nprecio DECIMAL(12,5),nidl INTEGER)
-BEGIN
-INSERT INTO fe_lecturas(lect_idco,lect_inic,lect_inim,lect_fech,lect_idus,lect_fope,lect_idtu,lect_idar,lect_mang,lect_prec,lect_idin)
-VALUES(nidcon,ninic,ninim,CURDATE(),nidus,LOCALTIME,nidtur,nidart,nmanguera,nprecio,nidl);
-END */$$
-DELIMITER ;
-
-/* Procedure structure for procedure `PROINGRESALECTURAFINAL` */
-
-/*!50003 DROP PROCEDURE IF EXISTS  `PROINGRESALECTURAFINAL` */;
-
-DELIMITER $$
-
-/*!50003 CREATE PROCEDURE `PROINGRESALECTURAFINAL`(nidL integer,nfinalc decimal(15,2),
-nfinalm decimal(15,2),nidus integer,nor integer)
-BEGIN
-update fe_lecturas set lect_mfinal=nfinalm,lect_cfinal=nfinalc,lect_fope1=localtime,lect_iduf=nidus,lect_esta='C'
-where lect_idle=nidl;
-END */$$
 DELIMITER ;
 
 /* Procedure structure for procedure `ProIngresaPdtesEntrega` */
@@ -5815,150 +5704,16 @@ until done end repeat;
 END */$$
 DELIMITER ;
 
-/* Procedure structure for procedure `ProlistarDespachos` */
+/* Procedure structure for procedure `ProlimpiaCopias` */
 
-/*!50003 DROP PROCEDURE IF EXISTS  `ProlistarDespachos` */;
-
-DELIMITER $$
-
-/*!50003 CREATE PROCEDURE `ProlistarDespachos`(df DATE,nIsla INTEGER)
-BEGIN
-CASE
-	WHEN nIsla = 1 THEN
-		SELECT gradename AS descri,amount AS monto,price AS precio,volume AS cantidad,
-		nozzle AS manguera,pump AS lado,estado,TotalVolume AS totalcantidad,
-		totalamount AS totalmonto,idjournal AS nId_Journal,fecreg_inicio,a.idart,a.unid
-		FROM venta  AS v
-                INNER JOIN fe_art AS a ON a.`prod_idar`=v.`idgrade`
-                WHERE estado=1 AND fecreg_inicio >=df AND pump IN('1','2','3','4') and amount>1 ORDER BY fecreg_inicio DESC,nozzle ASC,pump ASC;
-      ELSE 
-             SELECT gradename AS descri,amount AS monto,price AS precio,volume AS cantidad,
-	     nozzle AS manguera,pump AS lado,estado,TotalVolume AS totalcantidad,
-	     totalamount AS totalmonto,idjournal AS nId_Journal,fecreg_inicio,a.idart,a.unid
-	    FROM venta AS v
-            INNER JOIN fe_art AS a ON a.`prod_idar`=v.`idgrade`
-            WHERE estado=1 AND fecreg_inicio >=df AND pump IN('5','6','7','8') AND amount>1 ORDER BY fecreg_inicio DESC,nozzle ASC,pump ASC;     
-     END CASE;
-END */$$
-DELIMITER ;
-
-/* Procedure structure for procedure `ProListarlecturasreales` */
-
-/*!50003 DROP PROCEDURE IF EXISTS  `ProListarlecturasreales` */;
+/*!50003 DROP PROCEDURE IF EXISTS  `ProlimpiaCopias` */;
 
 DELIMITER $$
 
-/*!50003 CREATE PROCEDURE `ProListarlecturasreales`()
-BEGIN
-   (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,5 AS codigo  FROM venta WHERE pump=1 AND idgrade=7 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
-    UNION
-    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,5 AS codigo FROM venta WHERE pump=2 AND idgrade=7  AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
-    UNION
-    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,72 AS codigo  FROM venta WHERE pump=1 AND idgrade=8 AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
-    UNION
-    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,72 AS codigo FROM venta WHERE pump=2 AND idgrade=8  AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
-    UNION
-    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,1 AS codigo  FROM venta WHERE pump=1 AND idgrade=6 AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
-    UNION
-    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,1 AS codigo FROM venta WHERE pump=2 AND idgrade=6  AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
-    UNION 
-    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,3 AS codigo FROM venta WHERE pump=3 AND idgrade=5 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
-    UNION
-    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,3 AS codigo FROM venta WHERE pump=4 AND idgrade=5  AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
-     UNION
-     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,1 AS codigo  FROM venta WHERE pump=5 AND idgrade=6 AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
-     UNION
-     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,1 AS codigo FROM venta WHERE pump=6 AND idgrade=6  AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
-     UNION
-     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,5 AS codigo  FROM venta WHERE pump=5 AND idgrade=7 AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
-     UNION
-     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,5 AS codigo FROM venta WHERE pump=6 AND idgrade=7  AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
-     UNION 
-     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,72 AS codigo  FROM venta WHERE pump=5 AND idgrade=8 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
-     UNION
-     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-      fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,72 AS codigo  FROM venta WHERE pump=6 AND idgrade=8 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
-      UNION
-      (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-      fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,3 AS codigo  FROM venta WHERE pump=7 AND idgrade=5 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
-      UNION      
-      (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-      fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,3 AS codigo  FROM venta WHERE pump=8 AND idgrade=5 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1);
-END */$$
-DELIMITER ;
-
-/* Procedure structure for procedure `ProListarlecturasrealesxisla` */
-
-/*!50003 DROP PROCEDURE IF EXISTS  `ProListarlecturasrealesxisla` */;
-
-DELIMITER $$
-
-/*!50003 CREATE PROCEDURE `ProListarlecturasrealesxisla`(nisla INTEGER)
-BEGIN
-CASE
-WHEN nisla=1 THEN
-    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-    fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,5 As codigo  FROM venta WHERE pump=1 AND idgrade=7 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
-    UNION
-    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-    fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,5 as codigo FROM venta WHERE pump=2 AND idgrade=7  AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
-    UNION
-    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,72 as codigo  FROM venta WHERE pump=1 AND idgrade=8 AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
-    UNION
-    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-    fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,72 as codigo FROM venta WHERE pump=2 AND idgrade=8  AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
-    UNION
-    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-    fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,1 as codigo  FROM venta WHERE pump=1 AND idgrade=6 AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
-    UNION
-    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-    fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,1 as codigo FROM venta WHERE pump=2 AND idgrade=6  AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
-    union 
-    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,3 AS codigo FROM venta WHERE pump=3 AND idgrade=5 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
-    UNION
-     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,3 AS codigo FROM venta WHERE pump=4 AND idgrade=5  AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1);
-  WHEN nisla=2 THEN
-    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-    fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,1 as codigo FROM venta WHERE pump=5 AND idgrade=6 AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
-    UNION
-    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-     fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,1 as codigo FROM venta WHERE pump=6 AND idgrade=6  AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
-     UNION
-     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-     fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,5 as codigo  FROM venta WHERE pump=5 AND idgrade=7 AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
-     UNION
-     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-     fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,5 as codigo FROM venta WHERE pump=6 AND idgrade=7  AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
-     UNION
-     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-     fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,72 as codigo  FROM venta WHERE pump=5 AND idgrade=8 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
-     UNION
-     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-     fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,72 as codigo FROM venta WHERE pump=6 AND idgrade=8  AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
-     union 
-     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-     fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,3 as codigo  FROM venta WHERE pump=7 AND idgrade=5 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
-     UNION
-     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
-      fecreg_inicio AS inicio,fecreg_fin AS fin,price as precio,3 As codigo  FROM venta WHERE pump=8 AND idgrade=5 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1);
- END CASE;
-END */$$
+/*!50003 CREATE PROCEDURE `ProlimpiaCopias`(nidt integer)
+begin
+delete from fe_copia where copi_codt=nidt;
+end */$$
 DELIMITER ;
 
 /* Procedure structure for procedure `ProListarPrecioxCliente` */
@@ -6387,7 +6142,7 @@ DELIMITER ;
 
 DELIMITER $$
 
-/*!50003 CREATE PROCEDURE `ProMuestraPlanCuentas`(cb varchar(50),na integer)
+/*!50003 CREATE PROCEDURE `ProMuestraPlanCuentas`(cb varchar(50))
 BEGIN
 declare cb1 varchar(50);
 set cb1=concat('%',trim(cb),'%');
@@ -6431,7 +6186,7 @@ DELIMITER ;
 
 DELIMITER $$
 
-/*!50003 CREATE PROCEDURE `ProMuestraProductos1`(abuscar varchar(80),ndola decimal(6,3),opt char,nid integer)
+/*!50003 CREATE PROCEDURE `ProMuestraProductos1`(abuscar varchar(80),nd decimal(6,3),opt char,nid integer)
 BEGIN
 declare cbuscar varchar(80);
 case
@@ -6441,10 +6196,10 @@ when opt='C' then
    when nid=0 then
      SELECT idart,descri,unid,uno,dos,tre,cua,
      premay as pre1,
-     ifnull(round(if(tmon='S',((a.prec*v.igv)+b.prec)*prod_uti2,((a.prec*v.igv*if(prod_dola>v.dola,prod_dola,v.dola))+b.prec)*prod_uti2),2),0) as pre2,
-     ifnull(round(if(tmon='S',((a.prec*v.igv)+b.prec)*prod_uti3,((a.prec*v.igv*if(prod_dola>v.dola,prod_dola,v.dola))+b.prec)*prod_uti3),2),0) as pre3,
-     round(if(tmon='S',(a.prec*v.igv)+b.prec,(a.prec*v.igv*v.dola)+b.prec),4) as costo,c.idgrupo,c.dcat,prod_dola,
-     round(if(tmon='S',(a.prec*v.igv),(a.prec*v.igv*v.dola)),2) as costosf,b.prec as flete,
+     ifnull(round(if(tmon='S',((a.prec*vv.igv)+b.prec)*prod_uti2,((a.prec*vv.igv*if(prod_dola>nd,prod_dola,nd))+b.prec)*prod_uti2),2),0) as pre2,
+     ifnull(round(if(tmon='S',((a.prec*vv.igv)+b.prec)*prod_uti3,((a.prec*vv.igv*if(prod_dola>nd,prod_dola,nd))+b.prec)*prod_uti3),2),0) as pre3,
+     round(if(tmon='S',(a.prec*vv.igv)+b.prec,(a.prec*vv.igv*nd)+b.prec),4) as costo,c.idgrupo,c.dcat,prod_dola,
+     round(if(tmon='S',(a.prec*vv.igv),(a.prec*vv.igv*nd)),2) as costosf,b.prec as flete,
      ifnull(d.cost_cost,0) as costor,ifnull(d.cost_prec,0) as precr,ifnull(d.cost_mone,'')  as moner,
      cast(ifnull(d.cost_idco,0) as unsigned) as cost_idco,ifnull(d.cost_flet,0)  as fleter,ifnull(d.cost_dola,0) as dolar,
      peso,a.prec,tipro,a.idmar,a.idcat,cost,tmon,a.idflete,prod_uti1,prod_uti2,prod_uti3,prod_idus,
@@ -6456,15 +6211,15 @@ when opt='C' then
      inner join fe_mar as s ON s.idmar=a.idmar 
      left join fe_costos as d on(d.cost_idco=a.prod_idco)
      left join fe_rcom as y on (y.idauto=a.prod_idau) 
-     left join fe_prov as o on (o.idprov=y.idprov),fe_gene as v
+     left join fe_prov as o on (o.idprov=y.idprov),fe_gene as vv
      WHERE descri LIKE cbuscar and prod_acti<>'I'  and tipro='C' ORDER BY a.prod_orden,a.DESCRI;
    when nid>0 then
      SELECT idart,descri,unid,uno,dos,tre,cua,
      premay as pre1,
-     ifnull(round(if(tmon='S',((a.prec*v.igv)+b.prec)*prod_uti2,((a.prec*v.igv*if(prod_dola>v.dola,prod_dola,v.dola))+b.prec)*prod_uti2),2),0) as pre2,
-     ifnull(round(if(tmon='S',((a.prec*v.igv)+b.prec)*prod_uti3,((a.prec*v.igv*if(prod_dola>v.dola,prod_dola,v.dola))+b.prec)*prod_uti3),2),0) as pre3,
-     round(if(tmon='S',(a.prec*v.igv)+b.prec,(a.prec*v.igv*v.dola)+b.prec),4) as costo,c.idgrupo,c.dcat,prod_dola,
-     round(if(tmon='S',(a.prec*v.igv),(a.prec*v.igv*v.dola)),2) as costosf,b.prec as flete,
+     ifnull(round(if(tmon='S',((a.prec*vv.igv)+b.prec)*prod_uti2,((a.prec*vv.igv*if(prod_dola>nd,prod_dola,nd))+b.prec)*prod_uti2),2),0) as pre2,
+     ifnull(round(if(tmon='S',((a.prec*vv.igv)+b.prec)*prod_uti3,((a.prec*vv.igv*if(prod_dola>nd,prod_dola,nd))+b.prec)*prod_uti3),2),0) as pre3,
+     round(if(tmon='S',(a.prec*vv.igv)+b.prec,(a.prec*vv.igv*nd)+b.prec),4) as costo,c.idgrupo,c.dcat,prod_dola,
+     round(if(tmon='S',(a.prec*vv.igv),(a.prec*vv.igv*nd)),2) as costosf,b.prec as flete,
      ifnull(d.cost_cost,0) as costor,ifnull(d.cost_prec,0) as precr,ifnull(d.cost_mone,'')  as moner,
      cast(ifnull(d.cost_idco,0) as unsigned) as cost_idco,ifnull(d.cost_flet,0)  as fleter,ifnull(d.cost_dola,0) as dolar,
      peso,a.prec,tipro,a.idmar,a.idcat,cost,tmon,a.idflete,prod_uti1,prod_uti2,prod_uti3,prod_idus,
@@ -6476,37 +6231,17 @@ when opt='C' then
      inner join fe_mar as s ON s.idmar=a.idmar 
      left join fe_costos as d on(d.cost_idco=a.prod_idco)
      left join fe_rcom as y on (y.idauto=a.prod_idau) 
-     left join fe_prov as o on (o.idprov=y.idprov),fe_gene AS v
+     left join fe_prov as o on (o.idprov=y.idprov) ,fe_gene AS vv
      WHERE descri LIKE cbuscar and prod_acti<>'I'  and tipro='C' and prod_stoc=nid ORDER BY a.prod_orden,a.DESCRI;
    end case;
 when opt='O' then
-   SET cbuscar=CONCAT('%',TRIM(abuscar),+'%');
+   set cbuscar=trim(cast(nid as char));
    SELECT idart,descri,unid,uno,dos,tre,cua,
    premay as pre1,
-   ifnull(round(if(tmon='S',((a.prec*v.igv)+b.prec)*prod_uti2,((a.prec*v.igv*if(prod_dola>v.dola,prod_dola,v.dola))+b.prec)*prod_uti2),2),0) as pre2,
-   ifnull(round(if(tmon='S',((a.prec*v.igv)+b.prec)*prod_uti3,((a.prec*v.igv*if(prod_dola>v.dola,prod_dola,v.dola))+b.prec)*prod_uti3),2),0) as pre3,
-   round(if(tmon='S',(a.prec*v.igv)+b.prec,(a.prec*v.igv*v.dola)+b.prec),4) as costo,c.idgrupo,c.dcat,prod_dola,
-   round(if(tmon='S',(a.prec*v.igv),(a.prec*v.igv*v.dola)),2) as costosf,b.prec as flete,
-   cast(0 as decimal) as costor,cast(0 as decimal) as precr,''  as moner,
-   cast(0 as unsigned) as cost_idco,cast(0 as decimal)  as fleter,v.dola as dolar,
-   peso,a.prec,tipro,a.idmar,a.idcat,cost,tmon,a.idflete,prod_uti1,prod_uti2,prod_uti3,prod_idus,
-   prod_come,prod_comc,ulpc,prod_idus,prod_uact,prod_fact,fechc,prod_smax,prod_smin,ifnull(o.razo,'') as proveedor,
-   ifnull(yy.ndoc,'') as ndoc,ifnull(yy.fech,'') as fech,ulfc,s.dmar,prod_acti,prod_stoc,a.coda1
-   FROM fe_art  as a 
-   inner join fe_fletes as b on(b.idflete=a.idflete)
-   inner join fe_cat as c on(c.idcat=a.idcat)
-   inner join fe_mar as s ON s.idmar=a.idmar 
-   left join fe_rcom as yy on (yy.idauto=a.prod_idau) 
-   left join fe_prov as o on (o.idprov=yy.idprov),fe_gene AS v
-   WHERE descri LIKE cbuscar and prod_acti<>'I' and tipro<>'C' ORDER BY a.prod_orden,a.DESCRI;
-when opt='T' then
-   set cbuscar=concat('%',trim(abuscar),+'%');
-   SELECT idart,descri,unid,uno,dos,tre,cua,
-   premay as pre1,
-   ifnull(round(if(tmon='S',((a.prec*v.igv)+b.prec)*prod_uti2,((a.prec*v.igv*if(prod_dola>v.dola,prod_dola,v.dola))+b.prec)*prod_uti2),2),0) as pre2,
-   ifnull(round(if(tmon='S',((a.prec*v.igv)+b.prec)*prod_uti3,((a.prec*v.igv*if(prod_dola>v.dola,prod_dola,v.dola))+b.prec)*prod_uti3),2),0) as pre3,
-   round(if(tmon='S',(a.prec*v.igv)+b.prec,(a.prec*v.igv*v.dola)+b.prec),4) as costo,c.idgrupo,c.dcat,prod_dola,
-   round(if(tmon='S',(a.prec*v.igv),(a.prec*v.igv*v.dola)),2) as costosf,b.prec as flete,
+   ifnull(round(if(tmon='S',((a.prec*vv.igv)+b.prec)*prod_uti2,((a.prec*vv.igv*if(prod_dola>nd,prod_dola,nd))+b.prec)*prod_uti2),2),0) as pre2,
+   ifnull(round(if(tmon='S',((a.prec*vv.igv)+b.prec)*prod_uti3,((a.prec*vv.igv*if(prod_dola>nd,prod_dola,nd))+b.prec)*prod_uti3),2),0) as pre3,
+   round(if(tmon='S',(a.prec*vv.igv)+b.prec,(a.prec*vv.igv*nd)+b.prec),4) as costo,c.idgrupo,c.dcat,prod_dola,
+   round(if(tmon='S',(a.prec*vv.igv),(a.prec*vv.igv*nd)),2) as costosf,b.prec as flete,
    ifnull(d.cost_cost,0) as costor,ifnull(d.cost_prec,0) as precr,ifnull(d.cost_mone,'')  as moner,
    cast(ifnull(d.cost_idco,0) as unsigned) as cost_idco,ifnull(d.cost_flet,0)  as fleter,ifnull(d.cost_dola,0) as dolar,
    peso,a.prec,tipro,a.idmar,a.idcat,cost,tmon,a.idflete,prod_uti1,prod_uti2,prod_uti3,prod_idus,
@@ -6518,7 +6253,28 @@ when opt='T' then
    inner join fe_mar as s ON s.idmar=a.idmar 
    left join fe_costos as d on(d.cost_idco=a.prod_idco)
    left join fe_rcom as y on (y.idauto=a.prod_idau) 
-   left join fe_prov as o on (o.idprov=y.idprov),fe_gene AS v
+   left join fe_prov as o on (o.idprov=y.idprov) ,fe_gene AS vv
+   WHERE descri LIKE cbuscar and prod_acti<>'I' and tipro<>'C' ORDER BY a.prod_orden,a.DESCRI;
+when opt='T' then
+   set cbuscar=concat('%',trim(abuscar),+'%');
+   SELECT idart,descri,unid,uno,dos,tre,cua,
+   premay as pre1,
+   ifnull(round(if(tmon='S',((a.prec*vv.igv)+b.prec)*prod_uti2,((a.prec*vv.igv*if(prod_dola>nd,prod_dola,nd))+b.prec)*prod_uti2),2),0) as pre2,
+   ifnull(round(if(tmon='S',((a.prec*vv.igv)+b.prec)*prod_uti3,((a.prec*vv.igv*if(prod_dola>nd,prod_dola,nd))+b.prec)*prod_uti3),2),0) as pre3,
+   round(if(tmon='S',(a.prec*vv.igv)+b.prec,(a.prec*vv.igv*nd)+b.prec),4) as costo,c.idgrupo,c.dcat,prod_dola,
+   round(if(tmon='S',(a.prec*vv.igv),(a.prec*vv.igv*nd)),2) as costosf,b.prec as flete,
+   ifnull(d.cost_cost,0) as costor,ifnull(d.cost_prec,0) as precr,ifnull(d.cost_mone,'')  as moner,
+   cast(ifnull(d.cost_idco,0) as unsigned) as cost_idco,ifnull(d.cost_flet,0)  as fleter,ifnull(d.cost_dola,0) as dolar,
+   peso,a.prec,tipro,a.idmar,a.idcat,cost,tmon,a.idflete,prod_uti1,prod_uti2,prod_uti3,prod_idus,
+   prod_come,prod_comc,ulpc,prod_idus,prod_uact,prod_fact,fechc,prod_smax,prod_smin,ifnull(o.razo,'') as proveedor,
+   ifnull(y.ndoc,'') as ndoc,ifnull(y.fech,'') as fech,ulfc,s.dmar,prod_acti,prod_stoc,a.coda1
+   FROM fe_art  as a 
+   inner join fe_fletes as b on(b.idflete=a.idflete)
+   inner join fe_cat as c on(c.idcat=a.idcat)
+   inner join fe_mar as s ON s.idmar=a.idmar 
+   left join fe_costos as d on(d.cost_idco=a.prod_idco)
+   left join fe_rcom as y on (y.idauto=a.prod_idau) 
+   left join fe_prov as o on (o.idprov=y.idprov) ,fe_gene AS vv
    WHERE descri LIKE cbuscar and prod_acti<>'I'  ORDER BY a.prod_orden,a.DESCRI;
 end case;
 END */$$
@@ -6636,15 +6392,15 @@ DELIMITER $$
 BEGIN
 declare cbuscar varchar(80);
 set cbuscar=concat('%',trim(cbusca),+'%');
-case
-when opt=0 then
-   select nomb,tipo,activo,idusua,0 as Uno,1 as uno,2 as dos,3 as tres,clave,idalma,usua_anula from fe_usua where nomb like cbuscar and activo='S' order by nomb;
-when opt=1 then
-   select nomb,tipo,activo,idusua,0 as Uno,1 as uno,2 as dos,3 as tres,clave,idalma,usua_anula from fe_usua where idusua=nid and activo='S' order by nomb;
-else 
-   select nomb,tipo,activo,idusua,0 as Uno,1 as uno,2 as dos,3 as tres,clave,idalma,usua_anula from fe_usua where 
-   nomb like cbuscar and left(tipo,1)='V' and activo='S' order by nomb;
-end case ;
+if opt=0 then
+   select nomb,tipo,activo,idusua,0 as Uno,1 as uno,2 as dos,3 as tres,clave,idalma from fe_usua where nomb like cbuscar;
+end if;
+if opt=1 then
+   select nomb,tipo,activo,idusua,0 as Uno,1 as uno,2 as dos,3 as tres,clave,idalma from fe_usua where idusua=nid;
+end if;
+if opt=2 then
+   select nomb,tipo,activo,idusua,0 as Uno,1 as uno,2 as dos,3 as tres,clave,idalma from fe_usua where nomb like cbuscar and left(tipo,1)='V';
+end if;
 END */$$
 DELIMITER ;
 
@@ -6691,44 +6447,6 @@ set cv1=concat('%',trim(cv),'%');
 select zona_nomb,zona_idzon,b.nomb as usuario,zona_fech,zona_idpc from fe_zonap as a
 inner join fe_usua as b on b.idusua=a.zona_idus where
 zona_acti<>'I' and zona_nomb like cv1 order by zona_nomb;
-END */$$
-DELIMITER ;
-
-/* Procedure structure for procedure `ProObtenerlecturaActiva` */
-
-/*!50003 DROP PROCEDURE IF EXISTS  `ProObtenerlecturaActiva` */;
-
-DELIMITER $$
-
-/*!50003 CREATE PROCEDURE `ProObtenerlecturaActiva`(nisla INTEGER,df DATE)
-BEGIN
-CASE
-WHEN nisla=1 THEN
-     SELECT  CONCAT(CAST(lect_idtu AS CHAR),'-',CAST(lect_idin AS CHAR)) AS lectura,lect_idin AS idin FROM fe_lecturas WHERE lect_esta='A' AND lect_acti='A' AND lect_idco IN(1,2,3,4) GROUP BY lect_idin,lect_idtu;
-WHEN nisla=2 THEN
-     SELECT  CONCAT(CAST(lect_idtu AS CHAR),'-',CAST(lect_idin AS CHAR)) AS lectura,lect_idin AS idin FROM fe_lecturas WHERE lect_esta='A' AND lect_acti='A' AND lect_idco IN(5,6,7,8) GROUP BY lect_idin,lect_idtu;
-ELSE 
-     SELECT  CONCAT(CAST(lect_idtu AS CHAR),'-',CAST(lect_idin AS CHAR)) AS lectura,lect_idin AS idin FROM fe_lecturas WHERE lect_esta='A' AND lect_acti='A' AND lect_idco IN(1,2,3,4) GROUP BY lect_idin,lect_idtu;
-END CASE;     
-END */$$
-DELIMITER ;
-
-/* Procedure structure for procedure `ProObtenerlecturas` */
-
-/*!50003 DROP PROCEDURE IF EXISTS  `ProObtenerlecturas` */;
-
-DELIMITER $$
-
-/*!50003 CREATE PROCEDURE `ProObtenerlecturas`(nisla INTEGER,df DATE)
-BEGIN
-CASE
-WHEN nisla=1 THEN
-     SELECT  CONCAT(CAST(lect_idtu AS CHAR),'-',CAST(lect_idin AS CHAR)) AS lectura,lect_idin AS idin FROM fe_lecturas WHERE lect_fech=df and  lect_acti='A' AND lect_idco IN(1,2,3,4) GROUP BY lect_idin,lect_idtu;
-WHEN nisla=2 THEN
-     SELECT  CONCAT(CAST(lect_idtu AS CHAR),'-',CAST(lect_idin AS CHAR)) AS lectura,lect_idin AS idin FROM fe_lecturas WHERE lect_fech=df AND lect_acti='A' AND lect_idco IN(5,6,7,8) GROUP BY lect_idin,lect_idtu;
-ELSE 
-    SELECT  CONCAT(CAST(lect_idtu AS CHAR),'-',CAST(lect_idin AS CHAR)) AS lectura,lect_idin AS idin FROM fe_lecturas WHERE lect_fech=df AND lect_acti='A' AND lect_idco IN(1,2,3,4) GROUP BY lect_idin,lect_idtu;
-END CASE;
 END */$$
 DELIMITER ;
 
@@ -6918,6 +6636,415 @@ and b.idart=nidart;
 END */$$
 DELIMITER ;
 
+/* Procedure structure for procedure `ProListarDespachosh` */
+
+/*!50003 DROP PROCEDURE IF EXISTS  `ProListarDespachosh` */;
+
+DELIMITER $$
+
+/*!50003 CREATE PROCEDURE `ProListarDespachosh`(dfi DATE,dff DATE,nisla INTEGER)
+BEGIN
+CASE
+ 	WHEN nisla = 1 THEN
+	    SELECT gradename AS producto,amount AS monto,price AS precio,volume AS cantidad,
+            nozzle AS manguera,pump AS lado,estado,TotalVolume AS totalcantidad,
+	    totalamount AS totalmonto,fecreg_inicio,dcto,cliente,impo AS importe,idjournal AS nId_Journal
+	    FROM venta  AS v
+            LEFT JOIN  (SELECT fe_rcom.idauto,kar_idco,ndoc AS dcto,razo AS cliente,impo FROM fe_kar
+            INNER JOIN fe_rcom ON fe_rcom.idauto=fe_kar.idauto
+            INNER JOIN fe_clie ON fe_clie.idclie=fe_rcom.idcliente
+            WHERE fe_kar.acti='A' AND fe_rcom.acti='A' AND kar_idco>0 AND fe_rcom.fech BETWEEN dfi  AND dff GROUP BY idauto,kar_idco,ndoc,razo) AS k ON k.kar_idco=v.idjournal
+            WHERE CAST(fecreg_inicio AS DATE)  BETWEEN dfi  AND dff  AND pump IN('1','2') ORDER BY fecreg_inicio DESC,nozzle ASC,pump ASC;
+	WHEN nisla = 2 THEN
+	    SELECT gradename AS producto,amount AS monto,price AS precio,volume AS cantidad,
+	    nozzle AS manguera,pump AS lado,estado,TotalVolume AS totalcantidad,
+	    totalamount AS totalmonto,fecreg_inicio,dcto,cliente,impo AS importe,idjournal AS nId_Journal
+	    FROM venta  AS v
+            LEFT JOIN  (SELECT fe_rcom.idauto,kar_idco,ndoc AS dcto,razo AS cliente,impo FROM fe_kar
+            INNER JOIN fe_rcom ON fe_rcom.idauto=fe_kar.idauto
+            INNER JOIN fe_clie ON fe_clie.idclie=fe_rcom.idcliente
+            WHERE fe_kar.acti='A' AND fe_rcom.acti='A' AND kar_idco>0 AND fe_rcom.fech BETWEEN dfi  AND dff GROUP BY idauto,kar_idco,ndoc,razo) AS k ON k.kar_idco=v.idjournal
+            WHERE CAST(fecreg_inicio AS DATE)  BETWEEN dfi  AND dff  AND pump IN('3','4') ORDER BY fecreg_inicio DESC,nozzle ASC,pump ASC;
+	WHEN nisla = 3 THEN
+	    SELECT gradename AS producto,amount AS monto,price AS precio,volume AS cantidad,
+	    nozzle AS manguera,pump AS lado,estado,TotalVolume AS totalcantidad,
+	    totalamount AS totalmonto,fecreg_inicio,dcto,cliente,impo AS importe,idjournal AS nId_Journal
+	    FROM venta  AS v
+            LEFT JOIN  (SELECT fe_rcom.idauto,kar_idco,ndoc AS dcto,razo AS cliente,impo FROM fe_kar
+            INNER JOIN fe_rcom ON fe_rcom.idauto=fe_kar.idauto
+            INNER JOIN fe_clie ON fe_clie.idclie=fe_rcom.idcliente
+            WHERE fe_kar.acti='A' AND fe_rcom.acti='A' AND kar_idco>0 AND fe_rcom.fech BETWEEN dfi  AND dff GROUP BY idauto,kar_idco,ndoc,razo) AS k ON k.kar_idco=v.idjournal
+            WHERE CAST(fecreg_inicio AS DATE)  BETWEEN dfi  AND dff  AND pump IN('5','6','7','8') ORDER BY fecreg_inicio DESC,nozzle ASC,pump ASC;
+        else 
+            SELECT gradename AS producto,amount AS monto,price AS precio,volume AS cantidad,
+	    nozzle AS manguera,pump AS lado,estado,TotalVolume AS totalcantidad,
+	    totalamount AS totalmonto,fecreg_inicio,dcto,cliente,impo AS importe,idjournal AS nId_Journal
+	    FROM venta  AS v
+            LEFT JOIN  (SELECT fe_rcom.idauto,kar_idco,ndoc AS dcto,razo AS cliente,impo FROM fe_kar
+            INNER JOIN fe_rcom ON fe_rcom.idauto=fe_kar.idauto
+            INNER JOIN fe_clie ON fe_clie.idclie=fe_rcom.idcliente
+            WHERE fe_kar.acti='A' AND fe_rcom.acti='A' AND kar_idco>0 AND fe_rcom.fech BETWEEN dfi  AND dff GROUP BY idauto,kar_idco,ndoc,razo) AS k ON k.kar_idco=v.idjournal
+            WHERE CAST(fecreg_inicio AS DATE)  BETWEEN dfi  AND dff  AND pump IN('9','10') ORDER BY fecreg_inicio DESC,nozzle ASC,pump ASC;
+END CASE;
+END */$$
+DELIMITER ;
+
+/* Procedure structure for procedure `PROINGRESALECTURA` */
+
+/*!50003 DROP PROCEDURE IF EXISTS  `PROINGRESALECTURA` */;
+
+DELIMITER $$
+
+/*!50003 CREATE PROCEDURE `PROINGRESALECTURA`(nidcon INTEGER,nidtur INTEGER,ninic DECIMAL(12,2),
+ninim DECIMAL(12,2),dfecha DATE,nidus INTEGER,nidart INTEGER,nmanguera INTEGER,nprecio DECIMAL(12,5),nidl INTEGER)
+BEGIN
+INSERT INTO fe_lecturas(lect_idco,lect_inic,lect_inim,lect_fech,lect_idus,lect_fope,lect_idtu,lect_idar,lect_mang,lect_prec,lect_idin)
+VALUES(nidcon,ninic,ninim,CURDATE(),nidus,LOCALTIME,nidtur,nidart,nmanguera,nprecio,nidl);
+END */$$
+DELIMITER ;
+
+/* Procedure structure for procedure `ProIngresaDatosLcajaEfectivoCturnostarjetas` */
+
+/*!50003 DROP PROCEDURE IF EXISTS  `ProIngresaDatosLcajaEfectivoCturnostarjetas` */;
+
+DELIMITER $$
+
+/*!50003 CREATE PROCEDURE `ProIngresaDatosLcajaEfectivoCturnostarjetas`(dfecha DATE,cndoc VARCHAR(12),
+cdeta VARCHAR(100),idcta INTEGER,sdeudor DECIMAL(12,2),
+sacreedor DECIMAL(12,2),cmone CHAR,ndolar DECIMAL(5,3),nidus INTEGER,nidcp INTEGER,nidauto INTEGER,
+cform CHAR,cdcto VARCHAR(12),ctdoc VARCHAR(2),ncodt INTEGER,nturno INTEGER,
+creft VARCHAR(50),tipot CHAR,ctarjetabco VARCHAR(50))
+BEGIN
+DECLARE dft DATE;
+DECLARE nhora INTEGER;
+INSERT INTO fe_lcaja(lcaj_fech,lcaj_ndoc,lcaj_deta,lcaj_idct,lcaj_deud,lcaj_acre,lcaj_mone,lcaj_dola,
+lcaj_idus,lcaj_clpr,lcaj_idau,lcaj_form,lcaj_dcto,lcaj_tdoc,lcaj_codt,lcaj_idtu,lcaj_fope,lcaj_ttar,lcaj_rtar,lcaj_btar)VALUES
+(dfecha,cndoc,cdeta,idcta,sdeudor,sacreedor,cmone,ndolar,nidus,nidcp,nidauto,cform,cdcto,ctdoc,ncodt,nturno,LOCALTIME,tipot,creft,ctarjetabco);
+END */$$
+DELIMITER ;
+
+/* Procedure structure for procedure `ProIngresaDatosLcajaEfectivoCturnostarjetas10` */
+
+/*!50003 DROP PROCEDURE IF EXISTS  `ProIngresaDatosLcajaEfectivoCturnostarjetas10` */;
+
+DELIMITER $$
+
+/*!50003 CREATE PROCEDURE `ProIngresaDatosLcajaEfectivoCturnostarjetas10`(dfecha DATE,cndoc VARCHAR(12),
+cdeta VARCHAR(100),idcta INTEGER,sdeudor DECIMAL(12,2),sacreedor DECIMAL(12,2),cmone CHAR,ndolar DECIMAL(5,3),nidus INTEGER,nidcp INTEGER,nidauto INTEGER,
+cform CHAR,cdcto VARCHAR(12),ctdoc VARCHAR(2),ncodt INTEGER,nturno INTEGER,
+creft VARCHAR(50),tipot CHAR,ctarjetabco VARCHAR(50),nidlectura INTEGER)
+BEGIN
+INSERT INTO fe_lcaja(lcaj_fech,lcaj_ndoc,lcaj_deta,lcaj_idct,lcaj_deud,lcaj_acre,lcaj_mone,lcaj_dola,
+lcaj_idus,lcaj_clpr,lcaj_idau,lcaj_form,lcaj_dcto,lcaj_tdoc,lcaj_codt,lcaj_idtu,lcaj_fope,lcaj_ttar,lcaj_rtar,lcaj_btar,lcaj_idle)VALUES
+(dfecha,cndoc,cdeta,idcta,sdeudor,sacreedor,cmone,ndolar,nidus,nidcp,nidauto,cform,cdcto,ctdoc,ncodt,nturno,LOCALTIME,
+tipot,creft,ctarjetabco,nidlectura);
+END */$$
+DELIMITER ;
+
+/* Procedure structure for procedure `ProListarlecturasrealesxisla` */
+
+/*!50003 DROP PROCEDURE IF EXISTS  `ProListarlecturasrealesxisla` */;
+
+DELIMITER $$
+
+/*!50003 CREATE PROCEDURE `ProListarlecturasrealesxisla`(nisla INTEGER)
+BEGIN
+CASE
+WHEN nisla=1 THEN
+    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,1 AS codigo  FROM venta WHERE pump=1 AND idgrade=3 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+    UNION
+    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,2 AS codigo FROM venta WHERE pump=1 AND idgrade=2  AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
+    UNION
+    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,5 AS codigo  FROM venta WHERE pump=1 AND idgrade=1 AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
+    UNION
+    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,5 AS codigo FROM venta WHERE pump=2 AND idgrade=1  AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+    UNION
+    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,2 AS codigo  FROM venta WHERE pump=2 AND idgrade=2 AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
+    UNION
+    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,1 AS codigo FROM venta WHERE pump=2 AND idgrade=3  AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1);
+  WHEN nisla=2 THEN
+    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,5 AS codigo FROM venta WHERE pump=3 AND idgrade=1 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+    UNION
+    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,2 AS codigo FROM venta WHERE pump=3 AND idgrade=2 AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
+     UNION
+     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,1 AS codigo  FROM venta WHERE pump=3 AND idgrade=3 AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
+     UNION
+     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,5 AS codigo FROM venta WHERE pump=4 AND idgrade=1  AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+     UNION
+     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,4 AS codigo  FROM venta WHERE pump=4 AND idgrade=2 AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
+     UNION
+     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,1 AS codigo FROM venta WHERE pump=4 AND idgrade=3  AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1);
+  WHEN nisla=3 THEN 
+     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,72 AS codigo  FROM venta WHERE pump=5 AND idgrade=4 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+     UNION
+     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+      fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,72 AS codigo  FROM venta WHERE pump=6 AND idgrade=4 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+      UNION
+      (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+      fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,72 AS codigo  FROM venta WHERE pump=7 AND idgrade=4 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+      UNION      
+      (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+      fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,72 AS codigo  FROM venta WHERE pump=8 AND idgrade=4 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1);
+   else 
+     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,1 AS codigo  FROM venta WHERE pump=9 AND idgrade=3 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+     UNION
+     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+      fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,2 AS codigo  FROM venta WHERE pump=9 AND idgrade=2 AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
+      UNION
+      (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+      fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,5 AS codigo  FROM venta WHERE pump=9 AND idgrade=1 AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
+      UNION      
+      (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+      fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,5 AS codigo  FROM venta WHERE pump=10 AND idgrade=1 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+      UNION      
+      (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+      fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,2 AS codigo  FROM venta WHERE pump=10 AND idgrade=2 AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
+        UNION      
+      (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+      fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,1 AS codigo  FROM venta WHERE pump=10 AND idgrade=3 AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1);  
+  END CASE;
+END */$$
+DELIMITER ;
+
+/* Procedure structure for procedure `ProListarlecturasreales` */
+
+/*!50003 DROP PROCEDURE IF EXISTS  `ProListarlecturasreales` */;
+
+DELIMITER $$
+
+/*!50003 CREATE PROCEDURE `ProListarlecturasreales`()
+BEGIN
+    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,1 AS codigo  FROM venta WHERE pump=1 AND idgrade=3 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+    UNION
+    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,2 AS codigo FROM venta WHERE pump=1 AND idgrade=2  AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
+    UNION
+    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,5 AS codigo  FROM venta WHERE pump=1 AND idgrade=1 AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
+    UNION
+    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,5 AS codigo FROM venta WHERE pump=2 AND idgrade=1  AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+    UNION
+    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,2 AS codigo  FROM venta WHERE pump=2 AND idgrade=2 AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
+    UNION
+    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,1 AS codigo FROM venta WHERE pump=2 AND idgrade=3  AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
+	 UNION
+    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+    fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,5 AS codigo FROM venta WHERE pump=3 AND idgrade=1 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+    UNION
+    (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,2 AS codigo FROM venta WHERE pump=3 AND idgrade=2 AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
+     UNION
+     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,1 AS codigo  FROM venta WHERE pump=3 AND idgrade=3 AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
+     UNION
+     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,5 AS codigo FROM venta WHERE pump=4 AND idgrade=1  AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+     UNION
+     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,4 AS codigo  FROM venta WHERE pump=4 AND idgrade=2 AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
+     UNION
+     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,1 AS codigo FROM venta WHERE pump=4 AND idgrade=3  AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
+      UNION    
+     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,72 AS codigo  FROM venta WHERE pump=5 AND idgrade=4 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+     UNION
+     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+      fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,72 AS codigo  FROM venta WHERE pump=6 AND idgrade=4 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+      UNION
+      (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+      fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,72 AS codigo  FROM venta WHERE pump=7 AND idgrade=4 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+      UNION      
+      (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+      fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,72 AS codigo  FROM venta WHERE pump=8 AND idgrade=4 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+	  UNION
+     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+     fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,1 AS codigo  FROM venta WHERE pump=9 AND idgrade=3 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+     UNION
+     (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+      fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,2 AS codigo  FROM venta WHERE pump=9 AND idgrade=2 AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
+      UNION
+      (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+      fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,5 AS codigo  FROM venta WHERE pump=9 AND idgrade=1 AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1)
+      UNION      
+      (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+      fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,5 AS codigo  FROM venta WHERE pump=10 AND idgrade=1 AND nozzle=1 ORDER BY fecreg_inicio DESC LIMIT 1)
+      UNION      
+      (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+      fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,2 AS codigo  FROM venta WHERE pump=10 AND idgrade=2 AND nozzle=2 ORDER BY fecreg_inicio DESC LIMIT 1)
+        UNION      
+      (SELECT idgrade,gradename AS producto,pump AS surtidor,nozzle AS lado,totalvolume AS lectura,totalamount AS monto,
+      fecreg_inicio AS inicio,fecreg_fin AS fin,price AS precio,1 AS codigo  FROM venta WHERE pump=10 AND idgrade=3 AND nozzle=3 ORDER BY fecreg_inicio DESC LIMIT 1);  
+END */$$
+DELIMITER ;
+
+/* Procedure structure for procedure `ProIngresaDatosLcajaEfectivoCturnos10` */
+
+/*!50003 DROP PROCEDURE IF EXISTS  `ProIngresaDatosLcajaEfectivoCturnos10` */;
+
+DELIMITER $$
+
+/*!50003 CREATE PROCEDURE `ProIngresaDatosLcajaEfectivoCturnos10`(dfecha DATE,cndoc VARCHAR(12),
+cdeta VARCHAR(100),idcta INTEGER,sdeudor DECIMAL(12,2),
+sacreedor DECIMAL(12,2),cmone CHAR,ndolar DECIMAL(5,3),nidus INTEGER,nidcp INTEGER,nidauto INTEGER,
+cform CHAR,cdcto VARCHAR(12),ctdoc VARCHAR(2),ncodt INTEGER,nturno INTEGER,nidlectura INTEGER)
+BEGIN
+INSERT INTO fe_lcaja(lcaj_fech,lcaj_ndoc,lcaj_deta,lcaj_idct,lcaj_deud,lcaj_acre,lcaj_mone,lcaj_dola,
+lcaj_idus,lcaj_clpr,lcaj_idau,lcaj_form,lcaj_dcto,lcaj_tdoc,lcaj_codt,lcaj_idtu,lcaj_idle,lcaj_fope)VALUES
+(dfecha,cndoc,cdeta,idcta,sdeudor,sacreedor,cmone,ndolar,nidus,nidcp,nidauto,cform,cdcto,ctdoc,ncodt,nturno,nidlectura,LOCALTIME);
+END */$$
+DELIMITER ;
+
+/* Procedure structure for procedure `ProIngresaDatosLcajaEfectivoCturnos20` */
+
+/*!50003 DROP PROCEDURE IF EXISTS  `ProIngresaDatosLcajaEfectivoCturnos20` */;
+
+DELIMITER $$
+
+/*!50003 CREATE PROCEDURE `ProIngresaDatosLcajaEfectivoCturnos20`(dfecha DATE,cndoc VARCHAR(12),
+cdeta VARCHAR(100),idcta INTEGER,sdeudor DECIMAL(12,2),
+sacreedor DECIMAL(12,2),cmone CHAR,ndolar DECIMAL(5,3),nidus INTEGER,nidcp INTEGER,nidauto INTEGER,
+cform CHAR,cdcto VARCHAR(12),ctdoc VARCHAR(2),ncodt INTEGER,nturno INTEGER,ndscto DECIMAL(12,2),creft VARCHAR(50),tipot CHAR,ctarjetabco VARCHAR(50))
+BEGIN
+INSERT INTO fe_lcaja(lcaj_fech,lcaj_ndoc,lcaj_deta,lcaj_idct,lcaj_deud,lcaj_acre,lcaj_mone,lcaj_dola,
+lcaj_idus,lcaj_clpr,lcaj_idau,lcaj_form,lcaj_dcto,lcaj_tdoc,lcaj_codt,lcaj_idtu,lcaj_dsct,lcaj_ttar,lcaj_rtar,lcaj_btar,lcaj_fope)VALUES
+(dfecha,cndoc,cdeta,idcta,sdeudor,sacreedor,cmone,ndolar,nidus,nidcp,nidauto,cform,cdcto,ctdoc,ncodt,nturno,ndscto,tipot,creft,ctarjetabco,LOCALTIME);
+END */$$
+DELIMITER ;
+
+/* Procedure structure for procedure `ProIngresaDatosLcajaEfectivoCturnos30` */
+
+/*!50003 DROP PROCEDURE IF EXISTS  `ProIngresaDatosLcajaEfectivoCturnos30` */;
+
+DELIMITER $$
+
+/*!50003 CREATE PROCEDURE `ProIngresaDatosLcajaEfectivoCturnos30`(dfecha DATE,cndoc VARCHAR(12),
+cdeta VARCHAR(100),idcta INTEGER,sdeudor DECIMAL(12,2),
+sacreedor DECIMAL(12,2),cmone CHAR,ndolar DECIMAL(5,3),nidus INTEGER,nidcp INTEGER,nidauto INTEGER,
+cform CHAR,cdcto VARCHAR(12),ctdoc VARCHAR(2),ncodt INTEGER,nturno INTEGER,ndscto DECIMAL(12,2),creft VARCHAR(50),tipot CHAR,
+ctarjetabco VARCHAR(50),nidlectura INTEGER)
+BEGIN
+INSERT INTO fe_lcaja(lcaj_fech,lcaj_ndoc,lcaj_deta,lcaj_idct,lcaj_deud,lcaj_acre,lcaj_mone,lcaj_dola,
+lcaj_idus,lcaj_clpr,lcaj_idau,lcaj_form,lcaj_dcto,lcaj_tdoc,lcaj_codt,lcaj_idtu,lcaj_dsct,lcaj_ttar,lcaj_rtar,lcaj_btar,lcaj_fope,lcaj_idle)VALUES
+(dfecha,cndoc,cdeta,idcta,sdeudor,sacreedor,cmone,ndolar,nidus,nidcp,nidauto,cform,cdcto,ctdoc,ncodt,nturno,ndscto,tipot,creft,
+ctarjetabco,LOCALTIME,nidlectura);
+END */$$
+DELIMITER ;
+
+/* Procedure structure for procedure `ProlistarDespachos` */
+
+/*!50003 DROP PROCEDURE IF EXISTS  `ProlistarDespachos` */;
+
+DELIMITER $$
+
+/*!50003 CREATE PROCEDURE `ProlistarDespachos`(df DATE,nIsla INTEGER)
+BEGIN
+CASE
+	WHEN nIsla = 1 THEN
+		SELECT gradename AS descri,amount AS monto,price AS precio,volume AS cantidad,
+		nozzle AS manguera,pump AS lado,estado,TotalVolume AS totalcantidad,
+		totalamount AS totalmonto,idjournal AS nId_Journal,fecreg_inicio,a.idart,a.unid
+		FROM venta  AS v
+                INNER JOIN fe_art AS a ON a.`prod_idar`=v.`idgrade`
+                WHERE estado=1 AND fecreg_inicio >=df AND pump IN('1','2') AND amount>1 ORDER BY fecreg_inicio DESC,nozzle ASC,pump ASC;
+	WHEN nIsla = 2 THEN
+	    SELECT gradename AS descri,amount AS monto,price AS precio,volume AS cantidad,
+	    nozzle AS manguera,pump AS lado,estado,TotalVolume AS totalcantidad,
+	    totalamount AS totalmonto,idjournal AS nId_Journal,fecreg_inicio,a.idart,a.unid
+	    FROM venta AS v
+            INNER JOIN fe_art AS a ON a.`prod_idar`=v.`idgrade`
+            WHERE estado=1 AND fecreg_inicio >=df AND pump IN('3','4') AND amount>1 ORDER BY fecreg_inicio DESC,nozzle ASC,pump ASC;
+	WHEN nIsla = 3 THEN
+	    SELECT gradename AS descri,amount AS monto,price AS precio,volume AS cantidad,
+	     nozzle AS manguera,pump AS lado,estado,TotalVolume AS totalcantidad,
+	     totalamount AS totalmonto,idjournal AS nId_Journal,fecreg_inicio,a.idart,a.unid
+	    FROM venta AS v
+            INNER JOIN fe_art AS a ON a.`prod_idar`=v.`idgrade`
+            WHERE estado=1 AND fecreg_inicio >=df AND pump IN('5','6','7','8')  and amount>1 ORDER BY fecreg_inicio DESC,nozzle ASC,pump ASC;
+       else 
+             SELECT gradename AS descri,amount AS monto,price AS precio,volume AS cantidad,
+	     nozzle AS manguera,pump AS lado,estado,TotalVolume AS totalcantidad,
+	     totalamount AS totalmonto,idjournal AS nId_Journal,fecreg_inicio,a.idart,a.unid
+	    FROM venta AS v
+            INNER JOIN fe_art AS a ON a.`prod_idar`=v.`idgrade`
+            WHERE estado=1 AND fecreg_inicio >=df AND pump IN('9','10') ORDER BY fecreg_inicio DESC,nozzle ASC,pump ASC;     
+     END CASE;
+END */$$
+DELIMITER ;
+
+/* Procedure structure for procedure `ProObtenerlecturaActiva` */
+
+/*!50003 DROP PROCEDURE IF EXISTS  `ProObtenerlecturaActiva` */;
+
+DELIMITER $$
+
+/*!50003 CREATE PROCEDURE `ProObtenerlecturaActiva`(nisla INTEGER,df DATE)
+BEGIN
+CASE
+WHEN nisla=1 THEN
+     SELECT  CONCAT(CAST(lect_idtu AS CHAR),'-',CAST(lect_idin AS CHAR)) AS lectura,lect_idin AS idin FROM fe_lecturas WHERE lect_esta='A' AND lect_acti='A' AND lect_idco IN(1,2) GROUP BY lect_idin,lect_idtu;
+WHEN nisla=2 THEN
+     SELECT  CONCAT(CAST(lect_idtu AS CHAR),'-',CAST(lect_idin AS CHAR)) AS lectura,lect_idin AS idin FROM fe_lecturas WHERE lect_esta='A' AND lect_acti='A' AND lect_idco IN(3,4) GROUP BY lect_idin,lect_idtu;
+when nisla=3 then
+      SELECT  CONCAT(CAST(lect_idtu AS CHAR),'-',CAST(lect_idin AS CHAR)) AS lectura,lect_idin AS idin FROM fe_lecturas WHERE lect_esta='A' AND lect_acti='A' AND lect_idco IN(5,6,7,8) GROUP BY lect_idin,lect_idtu;
+ELSE 
+     SELECT  CONCAT(CAST(lect_idtu AS CHAR),'-',CAST(lect_idin AS CHAR)) AS lectura,lect_idin AS idin FROM fe_lecturas WHERE lect_esta='A' AND lect_acti='A' AND lect_idco IN(9,10) GROUP BY lect_idin,lect_idtu;
+END CASE;     
+END */$$
+DELIMITER ;
+
+/* Procedure structure for procedure `PROINGRESALECTURAFINAL` */
+
+/*!50003 DROP PROCEDURE IF EXISTS  `PROINGRESALECTURAFINAL` */;
+
+DELIMITER $$
+
+/*!50003 CREATE PROCEDURE `PROINGRESALECTURAFINAL`(nidL INTEGER,nfinalc DECIMAL(15,2),nfinalm DECIMAL(15,2),nidus INTEGER,nor integer)
+BEGIN
+UPDATE fe_lecturas SET lect_mfinal=nfinalm,lect_cfinal=nfinalc,lect_fope1=LOCALTIME,lect_iduf=nidus,lect_esta='C'
+WHERE lect_idle=nidl;
+END */$$
+DELIMITER ;
+
+/* Procedure structure for procedure `ProObtenerlecturas` */
+
+/*!50003 DROP PROCEDURE IF EXISTS  `ProObtenerlecturas` */;
+
+DELIMITER $$
+
+/*!50003 CREATE PROCEDURE `ProObtenerlecturas`(nisla INTEGER,df DATE)
+BEGIN
+CASE
+WHEN nisla=1 THEN
+     SELECT  CONCAT(CAST(lect_idtu AS CHAR),'-',CAST(lect_idin AS CHAR)) AS lectura,lect_idin AS idin FROM fe_lecturas WHERE lect_fech=df and  lect_acti='A' AND lect_idco IN(1,2) GROUP BY lect_idin,lect_idtu;
+WHEN nisla=2 THEN
+     SELECT  CONCAT(CAST(lect_idtu AS CHAR),'-',CAST(lect_idin AS CHAR)) AS lectura,lect_idin AS idin FROM fe_lecturas WHERE lect_fech=df AND lect_acti='A' AND lect_idco IN(3,4) GROUP BY lect_idin,lect_idtu;
+WHEN nisla=3 THEN
+     SELECT  CONCAT(CAST(lect_idtu AS CHAR),'-',CAST(lect_idin AS CHAR)) AS lectura,lect_idin AS idin FROM fe_lecturas WHERE lect_fech=df AND lect_acti='A' AND lect_idco IN(5,6,7,8) GROUP BY lect_idin,lect_idtu;     
+ELSE 
+    SELECT  CONCAT(CAST(lect_idtu AS CHAR),'-',CAST(lect_idin AS CHAR)) AS lectura,lect_idin AS idin FROM fe_lecturas WHERE lect_fech=df AND lect_acti='A' AND lect_idco IN(9,10) GROUP BY lect_idin,lect_idtu;
+END CASE;
+END */$$
+DELIMITER ;
+
 /*Table structure for table `rvendedores` */
 
 DROP TABLE IF EXISTS `rvendedores`;
@@ -7009,7 +7136,7 @@ DROP TABLE IF EXISTS `vcred`;
 
 /*!50001 CREATE TABLE  `vcred`(
  `idrc` int unsigned ,
- `impo` decimal(12,2) 
+ `impo` float 
 )*/;
 
 /*Table structure for table `ventregas` */
@@ -7073,20 +7200,20 @@ DROP TABLE IF EXISTS `vguiasdevolucion`;
  `detalle` varchar(150) ,
  `cant` int ,
  `placa` varchar(10) ,
- `Transportista` varchar(50) ,
+ `Transportista` varchar(100) ,
  `ructr` varchar(11) ,
- `Chofer` varchar(50) ,
+ `Chofer` varchar(100) ,
  `Brevete` varchar(25) ,
  `Constancia` varchar(40) ,
  `marca` varchar(50) ,
- `Direccion` varchar(50) ,
+ `Direccion` varchar(120) ,
  `usuario` varchar(45) ,
  `cliente` varchar(100) ,
  `idprov` int ,
  `refe` varchar(12) ,
  `tdoc` varchar(2) ,
  `guia_mens` varchar(120) ,
- `guia_arch` varchar(220) ,
+ `guia_arch` varchar(250) ,
  `email` varchar(45) ,
  `guia_hash` varchar(100) ,
  `guia_feen` datetime ,
@@ -7113,20 +7240,20 @@ DROP TABLE IF EXISTS `vguiasrcompras`;
  `detalle` varchar(150) ,
  `cant` int ,
  `placa` varchar(10) ,
- `Transportista` varchar(50) ,
+ `Transportista` varchar(100) ,
  `ructr` varchar(11) ,
- `Chofer` varchar(50) ,
+ `Chofer` varchar(100) ,
  `Brevete` varchar(25) ,
  `Constancia` varchar(40) ,
  `marca` varchar(50) ,
- `Direccion` varchar(50) ,
+ `Direccion` varchar(120) ,
  `usuario` varchar(45) ,
  `cliente` varchar(100) ,
  `idprov` int ,
  `refe` varchar(12) ,
  `tdoc` varchar(2) ,
  `guia_mens` varchar(120) ,
- `guia_arch` varchar(220) ,
+ `guia_arch` varchar(250) ,
  `email` varchar(100) ,
  `guia_hash` varchar(100) ,
  `guia_feen` datetime ,
@@ -7153,20 +7280,20 @@ DROP TABLE IF EXISTS `vguiasventas`;
  `detalle` varchar(150) ,
  `cant` int ,
  `placa` varchar(10) ,
- `Transportista` varchar(50) ,
+ `Transportista` varchar(100) ,
  `ructr` varchar(11) ,
- `Chofer` varchar(50) ,
+ `Chofer` varchar(100) ,
  `Brevete` varchar(25) ,
  `Constancia` varchar(40) ,
  `marca` varchar(50) ,
- `Direccion` varchar(50) ,
+ `Direccion` varchar(120) ,
  `usuario` varchar(45) ,
  `cliente` varchar(100) ,
  `idcliente` int ,
  `refe` varchar(12) ,
  `tdoc` varchar(2) ,
  `guia_mens` varchar(120) ,
- `guia_arch` varchar(220) ,
+ `guia_arch` varchar(250) ,
  `clie_corr` varchar(120) ,
  `guia_hash` varchar(100) ,
  `guia_feen` datetime ,
@@ -7190,13 +7317,13 @@ DROP TABLE IF EXISTS `vguiasventas1`;
  `detalle` varchar(150) ,
  `cant` decimal(10,2) ,
  `placa` varchar(10) ,
- `Transportista` varchar(50) ,
+ `Transportista` varchar(100) ,
  `ructr` varchar(11) ,
- `Chofer` varchar(50) ,
+ `Chofer` varchar(100) ,
  `Brevete` varchar(25) ,
  `Constancia` varchar(40) ,
  `marca` varchar(50) ,
- `Direccion` varchar(50) ,
+ `Direccion` varchar(120) ,
  `usuario` varchar(45) ,
  `cliente` varchar(100) ,
  `idcliente` int ,
@@ -7336,7 +7463,7 @@ DROP TABLE IF EXISTS `vmuestracompras`;
  `dolar` float ,
  `mone` varchar(1) ,
  `razo` varchar(100) ,
- `dire` varchar(100) ,
+ `dire` varchar(200) ,
  `ciud` varchar(100) ,
  `nruc` varchar(11) ,
  `codt` int ,
@@ -7669,7 +7796,7 @@ DROP TABLE IF EXISTS `vpdtespagoc`;
 /*!50001 CREATE TABLE  `vpdtespagoc`(
  `idclie` int ,
  `ndoc` varchar(12) ,
- `importe` decimal(35,2) ,
+ `importe` double ,
  `mone` varchar(1) ,
  `banc` varchar(120) ,
  `fech` date ,
@@ -7788,7 +7915,7 @@ DROP TABLE IF EXISTS `vrcompras`;
  `dolar` float ,
  `mone` varchar(1) ,
  `razo` varchar(100) ,
- `dire` varchar(100) ,
+ `dire` varchar(200) ,
  `ciud` varchar(100) ,
  `nruc` varchar(11) ,
  `Idcaja` bigint ,
@@ -7849,7 +7976,7 @@ DROP TABLE IF EXISTS `vregcompras`;
  `fusua` datetime ,
  `razo` varchar(100) ,
  `nruc` varchar(11) ,
- `dire` varchar(100) ,
+ `dire` varchar(200) ,
  `ciud` varchar(100) ,
  `fono` varchar(15) 
 )*/;
